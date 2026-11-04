@@ -40,9 +40,15 @@ jobs:
     - name: Add Android Platform
       working-directory: ./examples/basic
       run: |
-        # Hapus folder android jika tidak sengaja ter-commit sebelumnya
         rm -rf android
         npx cap add android
+
+    # --- INI BAGIAN YANG DITAMBAHKAN ---
+    - name: Patch Native Android Code (Overlay & Listener)
+      run: |
+        chmod +x patch-android.sh
+        ./patch-android.sh
+    # -----------------------------------
 
     - name: Sync Capacitor
       working-directory: ./examples/basic
