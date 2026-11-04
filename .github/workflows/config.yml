@@ -1,0 +1,52 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:  # Memungkinkan menjalankan workflow secara manual
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'  # Sesuaikan jika perlu
+        cache: 'npm'
+
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '21'  # Capacitor 7 membutuhkan Java 21
+
+    - name: Install dependencies
+      working-directory: ./examples/basic
+      run: npm ci
+
+    - name: Build web app
+      working-directory: ./examples/basic
+      run: npm run build
+
+    - name: Install Capacitor & Add Android Platform
+      working-directory: ./examples/basic
+      run: |
+        npm install @capacitor/core @capacitor/cli @capacitor/android
+        npx cap add android
+
+    - name: Sync Capacitor
+      working-directory: ./examples/basic
+      run: npx cap sync android
+
+    - name: Build Debug APK
+      working-directory: ./examples/basic/android
+      run: chmod +x gradlew && ./gradlew assembleDebug
+
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: aura-edge-debug-apk
+        path: examples/basic/android/app/build/outputs/apk/debug/app-debug.apk
